@@ -11,29 +11,32 @@
 (() => {
   "use strict";
 
-  // change this number to edit the number of times you want it to be run at the very least
-  const RUN_AT_LEAST = 7;
+  // CUSTOMIZABLE VARIABLES
+  //
+  // Maximum number of attempts made before new content loads.
+  // If it only scrolls down once for you, increase the number of attempts.
+  const MAX_ATTEMPTS_WHILE_LOADING = 15;
+  // Time delay in milliseconds to ensure the last scroll-down works correctly.
+  // If it stops scrolling right before it should, increase the delay.
+  const LAST_SCROLL_DELAY = 3000;
 
   let lastScrollHeight = 0;
   let updatedScrollHeight = -1;
   let autoScroll;
-  let counter = 0;
-  let slowCounter;
+  let attempt = 0;
 
   const setScrollHeight = () => {
     updatedScrollHeight = document.documentElement.scrollHeight;
-    slowCounter = counter;
     if (updatedScrollHeight !== lastScrollHeight) {
       lastScrollHeight = updatedScrollHeight;
       document.documentElement.scrollTop = updatedScrollHeight;
-      counter += 1;
-    } else if (
-      updatedScrollHeight === lastScrollHeight &&
-      counter >= RUN_AT_LEAST &&
-      slowCounter === counter
-    )
-      clearInterval(autoScroll);
+    } else if (attempt >= MAX_ATTEMPTS_WHILE_LOADING) {
+      setTimeout(() => {
+        document.documentElement.scrollTop =
+          document.documentElement.scrollHeight;
+        clearInterval(autoScroll);
+      }, LAST_SCROLL_DELAY);
+    } else if (updatedScrollHeight === lastScrollHeight) attempt += 1;
   };
-
   autoScroll = window.setInterval(setScrollHeight, 100);
 })();
